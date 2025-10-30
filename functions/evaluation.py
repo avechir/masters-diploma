@@ -14,11 +14,19 @@ def match_predictions_to_gt(predictions, ground_truth_dir, img_size, iou_thresho
     for pred in predictions:
         pred_by_file[pred['file']].append(pred.copy())
 
-    for filename in pred_by_file:
+    all_gt_files = [
+        f.replace('.txt', '.jpg')
+        for f in os.listdir(ground_truth_dir)
+        if f.endswith('.txt')
+    ]
+    for filename in all_gt_files:
         # ground truth by file
         label_path = os.path.join(ground_truth_dir, filename.replace('.jpg', '.txt'))
         gt_objects = parse_yolo_label(label_path, img_size[1], img_size[0])
-        file_preds = pred_by_file[filename]
+        for gt in gt_objects:
+            gt['matched'] = False
+
+        file_preds = pred_by_file.get(filename, [])
 
         # GT matching
         for pred in file_preds:
@@ -59,7 +67,8 @@ def match_predictions_to_gt(predictions, ground_truth_dir, img_size, iou_thresho
                     'pred_bbox': pred['bbox'],
                     'gt_bbox': None
                 })
-        # False Negatives
+
+        # False Negatives (усі unmatched GT)
         for gt in gt_objects:
             if not gt['matched']:
                 matches.append({
@@ -72,7 +81,7 @@ def match_predictions_to_gt(predictions, ground_truth_dir, img_size, iou_thresho
                     'pred_bbox': None,
                     'gt_bbox': gt['bbox']
                 })
-    
+
     return matches
 
 def calculate_metrics(matches, class_names=None):
@@ -118,7 +127,7 @@ def calculate_metrics(matches, class_names=None):
             'tp': tp,
             'fp': fp,
             'fn': fn,
-            'support': tp + fn  
+            # 'support': tp + fn  
         }
 
 
@@ -166,7 +175,9 @@ def print_evaluation_results(metrics):
         print(f"Class: {class_name}")
         print(f"   Precision: {cls_metrics['precision']:.4f}")
         print(f"   Recall: {cls_metrics['recall']:.4f}")
-        print(f"   Support: {cls_metrics['support']}")
+        print(f"   TP: {cls_metrics['tp']}")
+        print(f"   FN: {cls_metrics['fn']}")
+        print(f"   FP: {cls_metrics['fp']}")
 
 def evaluate_results(predictions_file, labels_dir, img_size, iou_threshold=0.5, class_names=None):
     if predictions_file.endswith('.json'):
@@ -183,49 +194,3 @@ def evaluate_results(predictions_file, labels_dir, img_size, iou_threshold=0.5, 
     print_evaluation_results(metrics)
 
     return metrics, matches
-
-def plot_confusion_matrix(matches, class_names=None):
-    y_true = []
-    y_pred = []
-    all_classes = set()
-    for match in matches:
-        if match['pred_class'] != -1:
-            all_classes.add(match['pred_class'])
-        if match['gt_class'] != -1:
-            all_classes.add(match['gt_class'])
-    all_classes = sorted(list(all_classes))
-
-    if class_names and len(class_names) >= len(all_classes):
-        class_mapping = {i: class_names[i] for i in all_classes}
-    else:
-        class_mapping = {i: f'Class_{i}' for i in all_classes}
-
-    background_label = 'Background'
-    for match in matches:
-        if match['type'] == 'TP':
-            y_true.append(class_mapping[match['gt_class']])
-            y_pred.append(class_mapping[match['pred_class']])
-        elif match['type'] == 'FP':
-            y_true.append(background_label)
-            y_pred.append(class_mapping[match['pred_class']])
-        elif match['type'] == 'FN':
-            y_true.append(class_mapping[match['gt_class']])
-            y_pred.append(background_label)
-
-    all_labels = sorted(list(set(y_true + y_pred)))
-    # print(all_labels)
-    cm = confusion_matrix(y_true, y_pred, labels=all_labels)
-    print(cm)
-
-    plt.figure(figsize=(7, 5))
-    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
-                xticklabels=all_labels, yticklabels=all_labels)
-    plt.title('Confusion Matrix')
-    plt.xlabel('Predicted')
-    plt.ylabel('True')
-    plt.xticks(rotation=45, ha='right')
-    plt.yticks(rotation=0)
-    plt.tight_layout()
-    plt.show()
-
-    return cm

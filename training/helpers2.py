@@ -64,8 +64,8 @@ def plot_confusion_matrix(metrics):
     sns.heatmap(conf_matrix, annot=True, fmt='.0f', cmap='Blues',
                 xticklabels=metrics.names.values(),
                 yticklabels=metrics.names.values())
-    plt.xlabel('Predicted')
-    plt.ylabel('True')
+    plt.xlabel('True')
+    plt.ylabel('Predicted')
     plt.title('Confusion Matrix')
     plt.tight_layout()
     plt.show()

@@ -4,7 +4,7 @@ import cv2
 from parsing import parse_filename
 import json
 
-def predict_images(model, images, save_json="predictions.json", c=0.25):
+def predict_images(model, images, save_json="predictions.json", conf_model=0.25):
     results_list = []
     if isinstance(images, str):  
         image_paths = sorted(glob.glob(os.path.join(images, "*.jpg")))
@@ -16,7 +16,7 @@ def predict_images(model, images, save_json="predictions.json", c=0.25):
     # print(len(image_paths))
     for img_path in image_paths:
         img = cv2.imread(img_path)
-        results = model.predict(img, verbose=False, conf=c)
+        results = model.predict(img, imgsz=640, verbose=False, conf=conf_model)
 
         for r in results:
             boxes = r.boxes.xyxy.cpu().numpy().tolist()
