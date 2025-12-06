@@ -1,6 +1,6 @@
 # Multispectral Explosive Object Detection (RGB + LWIR)
-The aim of this research is to enhance the identification of explosive ordnance in images from potentially contaminated areas by employing a **multispectral ensemble with a verification mechanism** using machine learning techniques.
-The goal is achieved by reducing the number of false detections through a sequential use of two deep learning models. The performance of the proposed ensemble was evaluated using the **YOLO architecture** (YOLOv8 and YOLO11) and a dataset containing both visible (RGB) and infrared (LWIR) spectrum images.
+The aim of this research is to enhance the identification of explosive ordnance in images from potentially contaminated areas by employing a multispectral ensemble with a verification mechanism using machine learning techniques.
+The goal is achieved by reducing the number of false detections through a sequential use of two deep learning models. The performance of the proposed ensemble was evaluated using the YOLO architecture (YOLOv8 and YOLO11) and a dataset containing both visible (RGB) and infrared (LWIR) spectrum images.
 ## Project Overview
 This repository contains the code for a diploma project focused on detecting explosive objects (mines) using a dual-sensor approach. The project utilizes a custom fusion algorithm to improve detection precision and eliminate false positives compared to single-modal approaches.
 * **Fusion logic (main steps):**
